@@ -42,11 +42,11 @@ fun main() {
 
 fun printStatistics(dictionary: MutableList<Word>) {
     val listNumberWordLearned = dictionary.filter { it.correctAnswersCount >= 3 }
-    val numberWordLearned = listNumberWordLearned.size
-    val totalNumberWord = dictionary.size
+    val learnedCount= listNumberWordLearned.size
+    val totalCount = dictionary.size
 
-    val percentWordLearned = numberWordLearned / totalNumberWord.toFloat() * 100
+    val percent = learnedCount / totalCount.toFloat() * 100
     println(
-        "Выучено $numberWordLearned из $totalNumberWord слов | ${percentWordLearned}%"
+        "Выучено $learnedCount из $totalCount слов | ${percent}%"
     )
 }
