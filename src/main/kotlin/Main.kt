@@ -8,19 +8,6 @@ data class Word(
     var correctAnswersCount: Int = 0
 )
 
-fun loadDictionary(): MutableList<Word> {
-    val direction = mutableListOf<Word>()
-    val dictionaryFile = File("word.txt")
-
-    dictionaryFile.forEachLine { line ->
-        val parts = line.split("|")
-        val correctAnswersCount = parts.getOrNull(2)?.toInt() ?: 0
-        val word = Word(parts[0], parts[1], correctAnswersCount)
-        direction.add(word)
-    }
-    return direction
-}
-
 fun main() {
     val dictionary = loadDictionary()
     while (true) {
@@ -40,7 +27,20 @@ fun main() {
     }
 }
 
-fun printStatistics(dictionary: MutableList<Word>) {
+fun loadDictionary(): List<Word> {
+    val direction = mutableListOf<Word>()
+    val dictionaryFile = File("word.txt")
+
+    dictionaryFile.forEachLine { line ->
+        val parts = line.split("|")
+        val correctAnswersCount = parts.getOrNull(2)?.toInt() ?: 0
+        val word = Word(parts[0], parts[1], correctAnswersCount)
+        direction.add(word)
+    }
+    return direction.toList()
+}
+
+fun printStatistics(dictionary: List<Word>) {
     val listNumberWordLearned = dictionary.filter { it.correctAnswersCount >= 3 }
     val learnedCount = listNumberWordLearned.size
     val totalCount = dictionary.size
