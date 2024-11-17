@@ -1,3 +1,10 @@
 hello привет
-cat  кот
+cat кот
 dog собака
+age возраст
+time время
+surname фамилия
+life жизнь
+human человек
+youth молодость
+study изучать
