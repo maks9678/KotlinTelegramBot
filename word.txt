@@ -8,3 +8,4 @@ life жизнь
 human человек
 youth молодость
 study изучать
+answer ответ

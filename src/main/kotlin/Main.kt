@@ -1,17 +1,16 @@
 package org.example
 
 import java.io.File
-import kotlin.contracts.contract
 
 data class Word(
     val original: String,
     val translation: String,
-    var correctAnswersCount: Int = 0
+    var correctAnswersCount: Int = 0,
 )
 
 fun main() {
     val dictionary = loadDictionary()
-    val notLearnedList = identifyUnlearned()
+    val notLearnedList = dictionary.filter { it.correctAnswersCount < 3 }.toMutableList()
     while (true) {
         println(
             "Выберите действие:\n" +
@@ -28,29 +27,30 @@ fun main() {
         }
     }
 }
-fun studyWord(notLearnedList:MutableList<Word>){
-    while (true){
-    if(notLearnedList.firstOrNull()==null){
-        println("Все слова в словаре выучены")
-        return
-    }
-    else{
-        val questionWords = notLearnedList.take(4)
-       val test = questionWords.shuffled()
 
-    }}
-}
-fun identifyUnlearned(): List<Word> {
-    val direction = mutableListOf<Word>()
-    val dictionaryFile = File("word.txt")
+fun studyWord(notLearnedList: MutableList<Word>) {
+    while (true) {
+        if (notLearnedList.firstOrNull() == null) {
+            println("Все слова в словаре выучены")
+            return
+        } else {
+            val questionWords = notLearnedList.take(4).shuffled()
+            val correctAnswer = questionWords[0]
 
-    dictionaryFile.forEachLine { line ->
-        val parts = line.split("|")
-        val correctAnswersCount = parts.getOrNull(2)?.toInt() ?: 0
-        val word = Word(parts[0], parts[1], correctAnswersCount)
-        direction.add(word)
+            println("${correctAnswer.original}:")
+            questionWords.forEachIndexed { index, line ->
+                println("$index - ${line.translation}")
+            }
+            println("введите цифру варианта ответа:")
+            val answer = readln().toInt()
+            if (questionWords[answer].translation == correctAnswer.translation) {
+                println("Правильный ответ!")
+                correctAnswer.correctAnswersCount++
+            } else println("Не правильный ответ")
+
+            if (correctAnswer.correctAnswersCount >= 3) notLearnedList.remove(correctAnswer)
+        }
     }
-    return direction.toList()
 }
 
 fun loadDictionary(): List<Word> {
