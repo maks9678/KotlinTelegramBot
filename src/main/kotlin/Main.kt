@@ -2,6 +2,9 @@ package org.example
 
 import java.io.File
 
+const val NUMBER_UNLEARNED_WORDS = 4
+const val MIN_CORRECT_ANSWERS = 3
+
 data class Word(
     val original: String,
     val translation: String,
@@ -10,7 +13,7 @@ data class Word(
 
 fun main() {
     val dictionary = loadDictionary()
-    val notLearnedList = dictionary.filter { it.correctAnswersCount < 3 }.toMutableList()
+    val notLearnedList = dictionary.filter { it.correctAnswersCount < MIN_CORRECT_ANSWERS }.toMutableList()
     while (true) {
         println(
             "Выберите действие:\n" +
@@ -30,26 +33,26 @@ fun main() {
 
 fun studyWord(notLearnedList: MutableList<Word>) {
     while (true) {
-        if (notLearnedList.firstOrNull() == null) {
+        if (notLearnedList.isEmpty()) {
             println("Все слова в словаре выучены")
             return
-        } else {
-            val questionWords = notLearnedList.take(4).shuffled()
-            val correctAnswer = questionWords[0]
-
-            println("${correctAnswer.original}:")
-            questionWords.forEachIndexed { index, line ->
-                println("$index - ${line.translation}")
-            }
-            println("введите цифру варианта ответа:")
-            val answer = readln().toInt()
-            if (questionWords[answer].translation == correctAnswer.translation) {
-                println("Правильный ответ!")
-                correctAnswer.correctAnswersCount++
-            } else println("Не правильный ответ")
-
-            if (correctAnswer.correctAnswersCount >= 3) notLearnedList.remove(correctAnswer)
         }
+        val questionCount = minOf(notLearnedList.size, NUMBER_UNLEARNED_WORDS)
+        val questionWords = notLearnedList.take(questionCount).shuffled()
+
+        val correctAnswer = questionWords[0]
+        println("${correctAnswer.original}:")
+        questionWords.forEachIndexed { index, line ->
+            println("$index - ${line.translation}")
+        }
+        println("введите цифру варианта ответа:")
+        val answer = readln().toInt()
+        if (questionWords[answer].translation == correctAnswer.translation) {
+            println("Правильный ответ!")
+            correctAnswer.correctAnswersCount++
+        } else println("Не правильный ответ")
+
+        if (correctAnswer.correctAnswersCount >= MIN_CORRECT_ANSWERS) notLearnedList.remove(correctAnswer)
     }
 }
 
@@ -67,7 +70,7 @@ fun loadDictionary(): List<Word> {
 }
 
 fun printStatistics(dictionary: List<Word>) {
-    val listNumberWordLearned = dictionary.filter { it.correctAnswersCount >= 3 }
+    val listNumberWordLearned = dictionary.filter { it.correctAnswersCount >= MIN_CORRECT_ANSWERS }
     val learnedCount = listNumberWordLearned.size
     val totalCount = dictionary.size
 
