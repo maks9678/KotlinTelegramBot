@@ -40,11 +40,16 @@ fun studyWord(notLearnedList: MutableList<Word>) {
         val questionCount = minOf(notLearnedList.size, NUMBER_UNLEARNED_WORDS)
         val questionWords = notLearnedList.take(questionCount).shuffled()
 
-        val correctAnswer = questionWords[0]
+        val correctAnswer = questionWords.random()
         println("${correctAnswer.original}:")
-        questionWords.forEachIndexed { index, line ->
-            println("$index - ${line.translation}")
-        }
+        val optionsString = questionWords.mapIndexed{ index, line ->
+            "$index - ${line.translation}"
+        }.joinToString(
+            separator = "\n",
+            prefix = "",
+            postfix = "\n${questionWords.size} - Выход"
+        )
+        println(optionsString)
         println("введите цифру варианта ответа:")
         val answer = readln().toInt()
         if (questionWords[answer].translation == correctAnswer.translation) {
