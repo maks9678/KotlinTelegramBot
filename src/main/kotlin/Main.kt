@@ -38,7 +38,7 @@ fun studyWord(notLearnedList: MutableList<Word>) {
             return
         }
         val questionCount = minOf(notLearnedList.size, NUMBER_UNLEARNED_WORDS)
-        val questionWords = notLearnedList.take(questionCount).shuffled()
+        val questionWords = notLearnedList.shuffled().take(questionCount)
 
         val correctAnswer = questionWords.random()
         println("${correctAnswer.original}:")
