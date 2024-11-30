@@ -1,11 +1,11 @@
-hello привет
-cat кот
-dog собака
-age возраст
-time время
-surname фамилия
-life жизнь
-human человек
-youth молодость
-study изучать
-answer ответ
+hello|привет|0
+cat|кот|0
+dog|собака|0
+age|возраст|0
+time|время|0
+surname|фамилия|0
+life|жизнь|0
+human|человек|0
+youth|молодость|0
+study|изучать|0
+answer|ответ|0
