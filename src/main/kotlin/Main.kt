@@ -54,7 +54,6 @@ fun studyWord(notLearnedList: MutableList<Word>) {
                     correctAnswer.correctAnswersCount++
                     saveDictionary(notLearnedList)
                 }
-
                 0 -> return
                 else -> println("Неправильно! ${correctAnswer.original} – это ${correctAnswer.translation}")
             }
