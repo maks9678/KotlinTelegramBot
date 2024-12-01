@@ -2,6 +2,9 @@ package org.example
 
 import java.io.File
 
+const val NUMBER_UNLEARNED_WORDS = 4
+const val MIN_CORRECT_ANSWERS = 3
+
 data class Word(
     val original: String,
     val translation: String,
@@ -34,17 +37,20 @@ fun studyWord(notLearnedList: MutableList<Word>) {
             println("Все слова в словаре выучены")
             return
         } else {
-            val questionWords = notLearnedList.take(4).shuffled()
-            val correctAnswer = questionWords[0]
-            var correctAnswerId: Int? = null
+            val questionCount = minOf(notLearnedList.size, NUMBER_UNLEARNED_WORDS)
+            val questionWords = notLearnedList.shuffled().take(questionCount)
+            val correctAnswer = questionWords.random()
+            val correctAnswerId: Int =questionWords.indexOf(correctAnswer)
 
             println("${correctAnswer.original}:")
-            questionWords.forEachIndexed { index, line ->
-                println("$index - ${line.translation}")
-                if (correctAnswer.translation == line.translation) correctAnswerId = index
-            }
-            println("-------------")
-            println("0 - Меню")
+            val optionsString = questionWords.mapIndexed{ index, line ->
+                "$index - ${line.translation}"
+            }.joinToString(
+                separator = "\n",
+                prefix = "",
+                postfix = "/n -------------/n 0 - Меню"
+            )
+            println(optionsString)
 
             println("введите цифру варианта ответа:")
             val userAnswerInput = readln().toInt()
@@ -57,6 +63,7 @@ fun studyWord(notLearnedList: MutableList<Word>) {
                 0 -> return
                 else -> println("Неправильно! ${correctAnswer.original} – это ${correctAnswer.translation}")
             }
+            if (correctAnswer.correctAnswersCount >= MIN_CORRECT_ANSWERS) notLearnedList.remove(correctAnswer)
         }
     }
 }
@@ -83,7 +90,7 @@ fun loadDictionary(): List<Word> {
 }
 
 fun printStatistics(dictionary: List<Word>) {
-    val listNumberWordLearned = dictionary.filter { it.correctAnswersCount >= 3 }
+    val listNumberWordLearned = dictionary.filter { it.correctAnswersCount >= MIN_CORRECT_ANSWERS }
     val learnedCount = listNumberWordLearned.size
     val totalCount = dictionary.size
 
