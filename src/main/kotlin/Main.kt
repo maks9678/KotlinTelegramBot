@@ -33,7 +33,7 @@ fun main() {
 
 fun studyWord(notLearnedList: MutableList<Word>) {
     while (true) {
-        if (notLearnedList.firstOrNull() == null) {
+        if (notLearnedList.isEmpty()) {
             println("Все слова в словаре выучены")
             return
         } else {
