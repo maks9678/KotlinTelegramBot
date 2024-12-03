@@ -31,23 +31,23 @@ fun main() {
 }
 
 fun studyWord(dictionary: List<Word>) {
-    val notLearnedList = dictionary.filter { it.correctAnswersCount < 3 }.toMutableList()
     while (true) {
+        val notLearnedList = dictionary.filter { it.correctAnswersCount < MIN_CORRECT_ANSWERS }.toMutableList()
         if (notLearnedList.isEmpty()) {
             println("Все слова в словаре выучены")
             return
         } else {
             val questionWords = notLearnedList.shuffled().take(NUMBER_UNLEARNED_WORDS)
             val correctAnswer = questionWords.random()
-            val correctAnswerId: Int = questionWords.indexOf(correctAnswer)
+            val correctAnswerId: Int = questionWords.indexOf(correctAnswer)+1
 
             println("${correctAnswer.original}:")
             val optionsString = questionWords.mapIndexed { index, line ->
-                "$index - ${line.translation}"
+                "${index + 1} - ${line.translation}"
             }.joinToString(
                 separator = "\n",
                 prefix = "",
-                postfix = "/n -------------/n 0 - Меню"
+                postfix = "\n -------------\n 0 - Меню"
             )
             println(optionsString)
 
@@ -59,10 +59,10 @@ fun studyWord(dictionary: List<Word>) {
                     correctAnswer.correctAnswersCount++
                     saveDictionary(notLearnedList)
                 }
+
                 0 -> return
                 else -> println("Неправильно! ${correctAnswer.original} – это ${correctAnswer.translation}")
             }
-            if (correctAnswer.correctAnswersCount >= MIN_CORRECT_ANSWERS) notLearnedList.remove(correctAnswer)
         }
     }
 }
