@@ -13,7 +13,6 @@ data class Word(
 
 fun main() {
     val dictionary = loadDictionary()
-    val notLearnedList = dictionary.filter { it.correctAnswersCount < MIN_CORRECT_ANSWERS }.toMutableList()
     while (true) {
         println(
             "Выберите действие:\n" +
@@ -23,7 +22,7 @@ fun main() {
         )
         val input = readln()
         when (input) {
-            "1" -> studyWord(notLearnedList)
+            "1" -> studyWord(dictionary)
             "2" -> printStatistics(dictionary)
             "0" -> return
             else -> println("Введите число 1, 2 или 0")
@@ -31,34 +30,49 @@ fun main() {
     }
 }
 
-fun studyWord(notLearnedList: MutableList<Word>) {
+fun studyWord(dictionary: List<Word>) {
     while (true) {
+        val notLearnedList = dictionary.filter { it.correctAnswersCount < MIN_CORRECT_ANSWERS }.toMutableList()
         if (notLearnedList.isEmpty()) {
             println("Все слова в словаре выучены")
             return
+        } else {
+            val questionWords = notLearnedList.shuffled().take(NUMBER_UNLEARNED_WORDS)
+            val correctAnswer = questionWords.random()
+            val correctAnswerId: Int = questionWords.indexOf(correctAnswer)+1
+
+            println("${correctAnswer.original}:")
+            val optionsString = questionWords.mapIndexed { index, line ->
+                "${index + 1} - ${line.translation}"
+            }.joinToString(
+                separator = "\n",
+                prefix = "",
+                postfix = "\n -------------\n 0 - Меню"
+            )
+            println(optionsString)
+
+            println("введите цифру варианта ответа:")
+            val userAnswerInput = readln().toInt()
+            when (userAnswerInput) {
+                correctAnswerId -> {
+                    println("Правильно!")
+                    correctAnswer.correctAnswersCount++
+                    saveDictionary(notLearnedList)
+                }
+
+                0 -> return
+                else -> println("Неправильно! ${correctAnswer.original} – это ${correctAnswer.translation}")
+            }
         }
-        val questionCount = minOf(notLearnedList.size, NUMBER_UNLEARNED_WORDS)
-        val questionWords = notLearnedList.shuffled().take(questionCount)
-
-        val correctAnswer = questionWords.random()
-        println("${correctAnswer.original}:")
-        val optionsString = questionWords.mapIndexed{ index, line ->
-            "$index - ${line.translation}"
-        }.joinToString(
-            separator = "\n",
-            prefix = "",
-            postfix = "\n${questionWords.size} - Выход"
-        )
-        println(optionsString)
-        println("введите цифру варианта ответа:")
-        val answer = readln().toInt()
-        if (questionWords[answer].translation == correctAnswer.translation) {
-            println("Правильный ответ!")
-            correctAnswer.correctAnswersCount++
-        } else println("Не правильный ответ")
-
-        if (correctAnswer.correctAnswersCount >= MIN_CORRECT_ANSWERS) notLearnedList.remove(correctAnswer)
     }
+}
+
+fun saveDictionary(dictionary: List<Word>) {
+    val dictionaryFile = File("word.txt")
+    val content = dictionary.joinToString(separator = "\n") {
+        "${it.original}|${it.translation}|${it.correctAnswersCount}"
+    }
+    dictionaryFile.writeText(content)
 }
 
 fun loadDictionary(): List<Word> {
