@@ -37,12 +37,8 @@ fun main() {
                         if (trainer.checkAnswer(userAnswerInput?.minus(1))) {
                             println("Правильно!\n")
                         } else {
-                            println(question.asConsoleToString())
-                            if (userAnswerInput == 0) break
-                            if (trainer.checkAnswer(userAnswerInput?.minus(1))) {
-                                println("Правильно!")
-                            } else println("Неправильно ${question.correctAnswer.questionWord} - ${question.correctAnswer.translate} | ${question.correctAnswer.correctAnswerCount}")
-
+                            println("Неправильно ${question.correctAnswer.questionWord} - ${question.correctAnswer.translate}")
+                            continue
                         }
                     }
                 }

@@ -23,7 +23,7 @@ class LearnWordsTrainer() {
 
 
     fun getStatistics(): Statistics {
-        val learned = dictionary.filter { it.correctAnswerCount >= MIN_CORRECT_ANSWERS }.size
+        val learned = dictionary.filter { it.correctAnswerCount>= MIN_CORRECT_ANSWERS}.size
         val total = dictionary.size
         val percent = learned / total.toFloat() * 100
         return Statistics(learned, total, percent)
@@ -61,7 +61,8 @@ class LearnWordsTrainer() {
 
         dictionaryFile.readLines().forEach {
             val splitLine = it.split("|")
-            dictionary.add(Word(splitLine[0], splitLine[1], splitLine[2].toIntOrNull() ?: 0))
+            splitLine.getOrNull(2)?.toIntOrNull() ?: 0
+            dictionary.add(Word(splitLine[0], splitLine[1], splitLine[2].toInt()))
         }
         return dictionary
     }
