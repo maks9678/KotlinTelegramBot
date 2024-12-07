@@ -3,7 +3,7 @@ package org.example
 data class Word(
     val questionWord: String,
     val translate: String,
-    var correctAnswerCount: Int,
+    var correctAnswerCount: Int = 0,
 )
 
 fun Question.asConsoleToString(): String {
