@@ -8,4 +8,4 @@ life|жизнь|1
 human|человек|0
 youth|молодость|0
 study|изучать|0
-answer|ответ|0
+answer|ответ|1

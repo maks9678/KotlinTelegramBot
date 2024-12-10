@@ -2,9 +2,6 @@ package org.example
 
 import java.io.File
 
-const val NUMBER_UNLEARNED_WORDS = 4
-const val MIN_CORRECT_ANSWERS = 3
-
 data class Statistics(
     val learned: Int,
     val total: Int,
@@ -16,14 +13,14 @@ data class Question(
     val correctAnswer: Word,
 )
 
-class LearnWordsTrainer() {
+class LearnWordsTrainer(private val minCorrectAnswer: Int = 3, private val numberUnlearnedWord: Int = 4) {
 
     private val dictionary = loadDictionary()
     private var question: Question? = null
 
 
     fun getStatistics(): Statistics {
-        val learned = dictionary.filter { it.correctAnswerCount >= MIN_CORRECT_ANSWERS }.size
+        val learned = dictionary.filter { it.correctAnswerCount >= minCorrectAnswer }.size
         val total = dictionary.size
         val percent = learned / total * 100
         return Statistics(learned, total, percent)
@@ -31,12 +28,18 @@ class LearnWordsTrainer() {
     }
 
     fun getNextQuestion(): Question? {
-        val notLearnedList = dictionary.filter { it.correctAnswerCount < MIN_CORRECT_ANSWERS }
+        val notLearnedList = dictionary.filter { it.correctAnswerCount < minCorrectAnswer }
         if (notLearnedList.isEmpty()) return null
-        val questionWords = notLearnedList.take(NUMBER_UNLEARNED_WORDS).shuffled()
-        val correctAnswer = questionWords.random()
+        val questionList = if (notLearnedList.size < numberUnlearnedWord) {
+            val learnedList = dictionary.filter { it.correctAnswerCount <= numberUnlearnedWord }.shuffled()
+            notLearnedList.shuffled()
+                .take(numberUnlearnedWord) + learnedList.take(numberUnlearnedWord - notLearnedList.size)
+        } else {
+            notLearnedList.shuffled().take(numberUnlearnedWord)
+        }
+        val correctAnswer = questionList.random()
         question = Question(
-            variants = questionWords,
+            variants = questionList,
             correctAnswer = correctAnswer,
         )
         return question
@@ -56,6 +59,7 @@ class LearnWordsTrainer() {
     }
 
     private fun loadDictionary(): List<Word> {
+
         val dictionary = mutableListOf<Word>()
         val dictionaryFile = File("word.txt")
 
