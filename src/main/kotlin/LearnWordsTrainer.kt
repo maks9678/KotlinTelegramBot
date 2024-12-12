@@ -2,6 +2,9 @@ package org.example
 
 import java.io.File
 
+const val NUMBER_UNLEARNED_WORDS = 4
+const val MIN_CORRECT_ANSWERS = 3
+
 data class Statistics(
     val learned: Int,
     val total: Int,
@@ -13,14 +16,14 @@ data class Question(
     val correctAnswer: Word,
 )
 
-class LearnWordsTrainer(private val minCorrectAnswer: Int = 3, private val numberUnlearnedWord: Int = 4) {
+class LearnWordsTrainer() {
 
     private val dictionary = loadDictionary()
     private var question: Question? = null
 
 
     fun getStatistics(): Statistics {
-        val learned = dictionary.filter { it.correctAnswerCount >= minCorrectAnswer }.size
+        val learned = dictionary.filter { it.correctAnswerCount >= MIN_CORRECT_ANSWERS }.size
         val total = dictionary.size
         val percent = learned / total * 100
         return Statistics(learned, total, percent)
@@ -28,14 +31,14 @@ class LearnWordsTrainer(private val minCorrectAnswer: Int = 3, private val numbe
     }
 
     fun getNextQuestion(): Question? {
-        val notLearnedList = dictionary.filter { it.correctAnswerCount < minCorrectAnswer }
+        val notLearnedList = dictionary.filter { it.correctAnswerCount < MIN_CORRECT_ANSWERS }
         if (notLearnedList.isEmpty()) return null
-        val questionList = if (notLearnedList.size < numberUnlearnedWord) {
-            val learnedList = dictionary.filter { it.correctAnswerCount <= numberUnlearnedWord }.shuffled()
+        val questionList = if (notLearnedList.size < NUMBER_UNLEARNED_WORDS) {
+            val learnedList = dictionary.filter { it.correctAnswerCount <= NUMBER_UNLEARNED_WORDS }.shuffled()
             notLearnedList.shuffled()
-                .take(numberUnlearnedWord) + learnedList.take(numberUnlearnedWord - notLearnedList.size)
+                .take(NUMBER_UNLEARNED_WORDS) + learnedList.take(NUMBER_UNLEARNED_WORDS - notLearnedList.size)
         } else {
-            notLearnedList.shuffled().take(numberUnlearnedWord)
+            notLearnedList.shuffled().take(NUMBER_UNLEARNED_WORDS)
         }
         val correctAnswer = questionList.random()
         question = Question(
