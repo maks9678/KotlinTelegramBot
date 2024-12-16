@@ -10,23 +10,23 @@ fun main(args: Array<String>) {
     var updateId = 0
     while (true) {
         Thread.sleep(2000)
-        try {
+
         val updates: String = getUpdates(botToken, updateId)
-        println(updates)
 
-
-        val messageUpdateIdRegex: Regex = "\"update_id\":\"(.+?)\"".toRegex()
-        val mathResultUpdateId: kotlin.text.MatchResult? = messageUpdateIdRegex.find(updates)
+        val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
+        val mathResultUpdateId: MatchResult? = messageUpdateIdRegex.find(updates)
         val groupsUpdateId = mathResultUpdateId?.groups
         val textUpdateId = groupsUpdateId?.get(1)?.value
-            updateId = textUpdateId?.toInt()?.plus(1) ?: continue
+        if(textUpdateId!=null){
+        updateId = textUpdateId.toInt()+1
+            println(updates)}
+        else continue
 
-            val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
-            val mathResultInputText: kotlin.text.MatchResult? = messageInputTextRegex.find(updates)
-            val groupsInputText = mathResultInputText?.groups
-            val inputText = groupsInputText?.get(1)?.value
-            println(inputText)
-        }catch (e:Exception){continue}
+        val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
+        val mathResultInputText: MatchResult? = messageInputTextRegex.find(updates)
+        val groupsInputText = mathResultInputText?.groups
+        val inputText = groupsInputText?.get(1)?.value
+        println(inputText)
 
 
     }
