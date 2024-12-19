@@ -3,20 +3,22 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
+
 fun main(args: Array<String>) {
 
     val botToken = args[0]
     var updateId = 0
+    val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
+    val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
     while (true) {
         Thread.sleep(2000)
         val updates: String = getUpdates(botToken, updateId)
-        println(updates)
-        val startUpdateId = updates.lastIndexOf("update_id")
-        val endUpdateId = updates.lastIndexOf(",\n\"message\"")
-        if (startUpdateId == -1 || endUpdateId == -1) continue
-        val updatesString = updates.substring(startUpdateId + 11, endUpdateId)
 
-        updateId = updatesString.toInt() + 1
+        updateId = messageUpdateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()?.plus(1) ?: continue
+        println(updates)
+
+        val inputText = messageInputTextRegex.find(updates)?.groups?.get(1)?.value ?: continue
+        println(inputText)
     }
 }
 
