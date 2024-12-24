@@ -1,4 +1,3 @@
-import java.awt.SystemColor.text
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -14,7 +13,7 @@ fun main(args: Array<String>) {
         val updates: String = telegramBot.getUpdates()
         val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
         val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
-        val messageChatIdRegex: Regex = "\"chat\"\\s*\\{[^}]*\"id\":\\s*(\\d+)".toRegex()
+        val messageChatIdRegex: Regex = "\"chat\":\\{\"id\":(\\d+)".toRegex()
 
         telegramBot.updateId =
             messageUpdateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()?.plus(1) ?: continue
@@ -27,7 +26,7 @@ fun main(args: Array<String>) {
 
         if (inputText != text) {
             text = "Введите другое слово"
-        } else println(telegramBot.sendMessage(chatId))
+        } else println(telegramBot.sendMessage(chatId,text))
     }
 }
 
@@ -42,7 +41,7 @@ class TelegramBotService(private val botToken: String) {
         return responseUpdates.body()
     }
 
-    fun sendMessage(chatId: Int): String {
+    fun sendMessage(chatId: Int,text:String): String {
         val urlOutput = "$URL_BOT$botToken/sendMessage?chat_id=$chatId&text=$text"
         val requestUpdates = HttpRequest.newBuilder().uri(URI.create(urlOutput)).build()
         val responseUpdates = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
