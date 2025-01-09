@@ -9,7 +9,7 @@ const val URL_BOT = "https://api.telegram.org/bot"
 
 fun main(args: Array<String>) {
     val telegramBot = TelegramBotService(args[0])
-    val updates: String = telegramBot.getUpdates()
+    var updates: String
 
     val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
     val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
@@ -18,6 +18,7 @@ fun main(args: Array<String>) {
 
     while (true) {
         Thread.sleep(2000)
+        updates = telegramBot.getUpdates()
         telegramBot.updateId =
             messageUpdateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()?.plus(1) ?: continue
         println(updates)
@@ -28,10 +29,7 @@ fun main(args: Array<String>) {
         val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()
         val data = dataRegex.find(updates)?.groups?.get(1)?.value
 
-        if (inputText.lowercase() == "hello" && chatId != null) {
-            telegramBot.sendMessage(chatId, "hello")
-        }
-        if (inputText.lowercase() == "menu"&& chatId != null) {
+        if (inputText.lowercase() == "/start"&& chatId != null) {
             telegramBot.sendMenu(chatId)
         }
         if (data?.lowercase() == "statistics_clicked"&& chatId != null) {
