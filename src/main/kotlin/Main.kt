@@ -1,18 +1,5 @@
 package org.example
 
-data class Word(
-    val questionWord: String,
-    val translate: String,
-    var correctAnswerCount: Int = 0,
-)
-
-fun Question.asConsoleToString(): String {
-    val variants = this.variants
-        .mapIndexed { index, word: Word -> "${index + 1} - ${word.translate}" }
-        .joinToString(separator = "\n")
-    return this.correctAnswer.questionWord + "\n" + variants + "\n 0 - Выйти в меню "
-}
-
 fun main() {
 
     val trainer = try {
