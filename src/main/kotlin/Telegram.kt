@@ -36,7 +36,7 @@ fun main(args: Array<String>) {
         val inputText = messageInputTextRegex.find(updates)?.groups?.get(1)?.value ?: continue
 
 
-        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()
+        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull()
         val data = dataRegex.find(updates)?.groups?.get(1)?.value
 
         if (inputText.lowercase() == "/start" && chatId != null) {
@@ -63,7 +63,7 @@ class TelegramBotService(private val botToken: String) {
         return responseUpdates.body()
     }
 
-    fun sendMessage(chatId: Int, text: String): String {
+    fun sendMessage(chatId: Long, text: String): String {
         val encoded = URLEncoder.encode(
             text,
             StandardCharsets.UTF_8
@@ -75,7 +75,7 @@ class TelegramBotService(private val botToken: String) {
         return responseUpdates.body()
     }
 
-    fun sendMenu(chatId: Int): String {
+    fun sendMenu(chatId: Long): String {
         val urlOutput = "$URL_BOT$botToken/sendMessage"
         val sendMenuBody = """{
     "chat_id": $chatId,
