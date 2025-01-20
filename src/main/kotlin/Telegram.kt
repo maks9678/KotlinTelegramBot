@@ -1,3 +1,4 @@
+import org.example.LearnWordsTrainer
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -6,10 +7,19 @@ import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 
 const val URL_BOT = "https://api.telegram.org/bot"
+const val LEARN_WORDS_CLICKED = "learn_words_clicked"
+const val STATISTIC_CLINKED = "statistics_clicked"
 
 fun main(args: Array<String>) {
     val telegramBot = TelegramBotService(args[0])
     var updates: String
+
+    val trainer = try {
+        LearnWordsTrainer()
+    } catch (e: Exception) {
+        println("Невозможно загрузить словарь.")
+        return
+    }
 
     val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
     val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
@@ -26,14 +36,18 @@ fun main(args: Array<String>) {
         val inputText = messageInputTextRegex.find(updates)?.groups?.get(1)?.value ?: continue
 
 
-        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()
+        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull()?:0
         val data = dataRegex.find(updates)?.groups?.get(1)?.value
 
-        if (inputText.lowercase() == "/start"&& chatId != null) {
+        if (inputText.lowercase() == "/start") {
             telegramBot.sendMenu(chatId)
         }
-        if (data?.lowercase() == "statistics_clicked"&& chatId != null) {
-            telegramBot.sendMessage(chatId, "Выучено 100 из 100 слов ")
+        if (data?.lowercase() == "statistics_clicked") {
+            val statistics = trainer.getStatistics()
+            telegramBot.sendMessage(
+                chatId,
+                "Выучено:${statistics.learned} из ${statistics.total} | ${statistics.percent}"
+            )
         }
     }
 }
@@ -49,7 +63,7 @@ class TelegramBotService(private val botToken: String) {
         return responseUpdates.body()
     }
 
-    fun sendMessage(chatId: Int, text: String): String {
+    fun sendMessage(chatId: Long, text: String): String {
         val encoded = URLEncoder.encode(
             text,
             StandardCharsets.UTF_8
@@ -61,7 +75,7 @@ class TelegramBotService(private val botToken: String) {
         return responseUpdates.body()
     }
 
-    fun sendMenu(chatId: Int): String {
+    fun sendMenu(chatId: Long): String {
         val urlOutput = "$URL_BOT$botToken/sendMessage"
         val sendMenuBody = """{
     "chat_id": $chatId,
@@ -71,11 +85,11 @@ class TelegramBotService(private val botToken: String) {
             [
                 {
                     "text": "Изучить слова",
-                    "callback_data": "learn_words_clicked"
+                    "callback_data": "$LEARN_WORDS_CLICKED"
                 },
                 {
                     "text": "Статистика",
-                    "callback_data": "statistics_clicked"
+                    "callback_data": "$STATISTIC_CLINKED"
                 }
             ]
         ]
