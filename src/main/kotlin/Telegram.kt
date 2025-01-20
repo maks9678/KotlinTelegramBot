@@ -1,6 +1,5 @@
 import org.example.LearnWordsTrainer
 import org.example.Question
-import org.example.asConsoleToString
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -13,6 +12,7 @@ const val LEARN_WORDS_CLICKED = "learn_words_clicked"
 const val STATISTIC_CLINKED = "statistics_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
 
+
 fun main(args: Array<String>) {
     val telegramBot = TelegramBotService(args[0])
     var updates: String
@@ -24,23 +24,21 @@ fun main(args: Array<String>) {
         return
     }
 
-    val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
-    val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
-    val messageChatIdRegex: Regex = "\"chat\":\\{\"id\":(\\d+)".toRegex()
-    val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
 
     while (true) {
         Thread.sleep(2000)
         updates = telegramBot.getUpdates()
+
         telegramBot.updateId =
-            messageUpdateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()?.plus(1) ?: continue
+            telegramBot.extractCallbackData(updates, telegramBot.messageUpdateIdRegex)?.toIntOrNull()?.plus(1)
+                ?: continue
         println(updates)
 
-        val inputText = messageInputTextRegex.find(updates)?.groups?.get(1)?.value ?: continue
+        val inputText = telegramBot.extractCallbackData(updates, telegramBot.messageInputTextRegex) ?: continue
 
 
-        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull()?:0
-        val data = dataRegex.find(updates)?.groups?.get(1)?.value
+        val chatId = telegramBot.extractCallbackData(updates, telegramBot.messageChatIdRegex)?.toLongOrNull() ?: 0
+        val data = telegramBot.extractCallbackData(updates, telegramBot.dataRegex)
 
         if (inputText.lowercase() == "/start") {
             telegramBot.sendMenu(chatId)
@@ -52,32 +50,68 @@ fun main(args: Array<String>) {
                 "Выучено: ${statistics.learned} из ${statistics.total} | ${statistics.percent}%"
             )
         }
-        if (data?.lowercase() == LEARN_WORDS_CLICKED && chatId != null) {
-                val question: Question? = trainer.getNextQuestion()
-                if (question == null) {
-                    telegramBot.sendMessage(chatId, "Все слова в словаре выучены")
-                    break
-                } else {
-                    telegramBot.sendQuestion(chatId, question)
-                    val userAnswerInput: Int? = data.removePrefix(CALLBACK_DATA_ANSWER_PREFIX).toIntOrNull()
-
-                    if (trainer.checkAnswer(userAnswerInput) ){
-                        telegramBot.sendMessage(chatId, "Правильно!")
-                    } else {
-                        telegramBot.sendMessage(
-                            chatId,
-                            "Неправильно ${question.correctAnswer.questionWord} - ${question.correctAnswer.translate}"
-                        )
-                        continue
-                    }
-                }
+        if (data?.lowercase() == LEARN_WORDS_CLICKED) {
+            checkNextQuestionAndSend(trainer, telegramBot, chatId)
         }
+    }
+}
+
+
+fun checkNextQuestionAndSend(
+    trainer: LearnWordsTrainer,
+    telegramBotService: TelegramBotService,
+    chatId: Long
+) {
+    while (true) {
+        val question: Question? = trainer.getNextQuestion()
+        if (question == null) {
+            telegramBotService.sendMessage(chatId, "Все слова в словаре выучены")
+            break
+        } else {
+            telegramBotService.sendQuestion(chatId, question)
+            val updates = telegramBotService.getUpdates()
+            println(updates)
+            val callbackData = telegramBotService.waitForUserAnswer(telegramBotService)
+
+                val userAnswerInput: Int = callbackData.removePrefix(CALLBACK_DATA_ANSWER_PREFIX).toInt()
+
+                if (trainer.checkAnswer(userAnswerInput-1)) {
+                    telegramBotService.sendMessage(chatId, "Правильно!")
+                } else {
+                    telegramBotService.sendMessage(
+                        chatId,
+                        "Неправильно ${question.correctAnswer.questionWord} - ${question.correctAnswer.translate}"
+                    )
+
+                }
+
+            }
+        break
     }
 }
 
 class TelegramBotService(private val botToken: String) {
     var updateId = 0
     private val client: HttpClient = HttpClient.newBuilder().build()
+    val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
+    val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
+    val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
+    val messageChatIdRegex: Regex = "\"chat\":\\{\"id\":(\\d+)".toRegex()
+
+    fun waitForUserAnswer(telegramBotService: TelegramBotService ): String {
+        while (true) {
+            val updates = telegramBotService.getUpdates()
+
+            val callbackData = telegramBotService.extractCallbackData(updates,dataRegex)
+
+            if (callbackData != null) {
+                return callbackData
+            }
+        }
+    }
+    fun extractCallbackData(updates: String, regex: Regex): String? {
+        return regex.find(updates)?.groups?.get(1)?.value
+    }
 
     fun getUpdates(): String {
         val urlGetUpdates = "$URL_BOT$botToken/getUpdates?offset=$updateId"

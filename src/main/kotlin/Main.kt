@@ -1,5 +1,6 @@
 package org.example
 
+/*
 fun main() {
 
     val trainer = try {
@@ -46,4 +47,4 @@ fun main() {
             else -> println("Введите число 1, 2 или 0")
         }
     }
-}
+}*/
