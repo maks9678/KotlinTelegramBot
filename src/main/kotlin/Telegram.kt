@@ -36,13 +36,13 @@ fun main(args: Array<String>) {
         val inputText = messageInputTextRegex.find(updates)?.groups?.get(1)?.value ?: continue
 
 
-        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull()
+        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull()?:0
         val data = dataRegex.find(updates)?.groups?.get(1)?.value
 
-        if (inputText.lowercase() == "/start" && chatId != null) {
+        if (inputText.lowercase() == "/start") {
             telegramBot.sendMenu(chatId)
         }
-        if (data?.lowercase() == "statistics_clicked" && chatId != null) {
+        if (data?.lowercase() == "statistics_clicked") {
             val statistics = trainer.getStatistics()
             telegramBot.sendMessage(
                 chatId,
