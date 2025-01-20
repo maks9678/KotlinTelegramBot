@@ -1,4 +1,6 @@
 import org.example.LearnWordsTrainer
+import org.example.Question
+import org.example.asConsoleToString
 import java.net.URI
 import java.net.URLEncoder
 import java.net.http.HttpClient
@@ -9,6 +11,7 @@ import java.nio.charset.StandardCharsets
 const val URL_BOT = "https://api.telegram.org/bot"
 const val LEARN_WORDS_CLICKED = "learn_words_clicked"
 const val STATISTIC_CLINKED = "statistics_clicked"
+const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
 
 fun main(args: Array<String>) {
     val telegramBot = TelegramBotService(args[0])
@@ -36,18 +39,38 @@ fun main(args: Array<String>) {
         val inputText = messageInputTextRegex.find(updates)?.groups?.get(1)?.value ?: continue
 
 
-        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()
+        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull()
         val data = dataRegex.find(updates)?.groups?.get(1)?.value
 
         if (inputText.lowercase() == "/start" && chatId != null) {
             telegramBot.sendMenu(chatId)
         }
-        if (data?.lowercase() == "statistics_clicked" && chatId != null) {
+        if (data?.lowercase() == STATISTIC_CLINKED && chatId != null) {
             val statistics = trainer.getStatistics()
             telegramBot.sendMessage(
                 chatId,
-                "Выучено:${statistics.learned} из ${statistics.total} | ${statistics.percent}"
+                "Выучено: ${statistics.learned} из ${statistics.total} | ${statistics.percent}%"
             )
+        }
+        if (data?.lowercase() == LEARN_WORDS_CLICKED && chatId != null) {
+                val question: Question? = trainer.getNextQuestion()
+                if (question == null) {
+                    telegramBot.sendMessage(chatId, "Все слова в словаре выучены")
+                    break
+                } else {
+                    telegramBot.sendQuestion(chatId, question)
+                    val userAnswerInput: Int? = data.removePrefix(CALLBACK_DATA_ANSWER_PREFIX).toIntOrNull()
+
+                    if (trainer.checkAnswer(userAnswerInput) ){
+                        telegramBot.sendMessage(chatId, "Правильно!")
+                    } else {
+                        telegramBot.sendMessage(
+                            chatId,
+                            "Неправильно ${question.correctAnswer.questionWord} - ${question.correctAnswer.translate}"
+                        )
+                        continue
+                    }
+                }
         }
     }
 }
@@ -63,7 +86,7 @@ class TelegramBotService(private val botToken: String) {
         return responseUpdates.body()
     }
 
-    fun sendMessage(chatId: Int, text: String): String {
+    fun sendMessage(chatId: Long, text: String): String {
         val encoded = URLEncoder.encode(
             text,
             StandardCharsets.UTF_8
@@ -75,7 +98,7 @@ class TelegramBotService(private val botToken: String) {
         return responseUpdates.body()
     }
 
-    fun sendMenu(chatId: Int): String {
+    fun sendMenu(chatId: Long): String {
         val urlOutput = "$URL_BOT$botToken/sendMessage"
         val sendMenuBody = """{
     "chat_id": $chatId,
@@ -91,6 +114,44 @@ class TelegramBotService(private val botToken: String) {
                     "text": "Статистика",
                     "callback_data": "$STATISTIC_CLINKED"
                 }
+            ]
+        ]
+    }
+}""".trimIndent()
+        val client: HttpClient = HttpClient.newBuilder().build()
+        val request = HttpRequest.newBuilder().uri(URI.create(urlOutput))
+            .header("Content-type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(sendMenuBody))
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.body()
+    }
+
+    fun sendQuestion(chatId: Long, question: Question): String {
+        val urlOutput = "$URL_BOT$botToken/sendMessage"
+        val sendMenuBody = """{
+    "chat_id": $chatId,
+    "text": "How it translates: ${question.correctAnswer.questionWord}",
+    "reply_markup": {
+        "inline_keyboard": [
+            [
+                {
+                    "text": "${question.variants[0].translate}",
+                    "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}1"
+                },
+                {
+                    "text": "${question.variants[1].translate}",
+                    "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}2"
+                },
+                {
+                    "text": "${question.variants[2].translate}",
+                    "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}3"
+                },
+                {
+                    "text": "${question.variants[3].translate}",
+                    "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}4"
+                }
+        
             ]
         ]
     }

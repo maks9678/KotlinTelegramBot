@@ -45,7 +45,7 @@ class LearnWordsTrainer() {
     fun getNextQuestion(): Question? {
         val notLearnedList = dictionary.filter { it.correctAnswerCount < MIN_CORRECT_ANSWERS }
         if (notLearnedList.isEmpty()) return null
-        val questionList = if (notLearnedList.size < NUMBER_UNLEARNED_WORDS) {
+        val questionList: List<Word> = if (notLearnedList.size < NUMBER_UNLEARNED_WORDS) {
             val learnedList = dictionary.filter { it.correctAnswerCount <= NUMBER_UNLEARNED_WORDS }.shuffled()
             notLearnedList.shuffled()
                 .take(NUMBER_UNLEARNED_WORDS) + learnedList.take(NUMBER_UNLEARNED_WORDS - notLearnedList.size)
@@ -60,7 +60,7 @@ class LearnWordsTrainer() {
         return question
     }
 
-    fun checkAnswer(userAnswerIndex: Int?): Boolean {
+    fun checkAnswer(userAnswerIndex: Int): Boolean {
         return question?.let {
             val correctAnswerId = it.variants.indexOf(it.correctAnswer)
             if (correctAnswerId == userAnswerIndex) {
