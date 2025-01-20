@@ -39,10 +39,10 @@ fun main(args: Array<String>) {
         val inputText = messageInputTextRegex.find(updates)?.groups?.get(1)?.value ?: continue
 
 
-        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull()
+        val chatId = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull()?:0
         val data = dataRegex.find(updates)?.groups?.get(1)?.value
 
-        if (inputText.lowercase() == "/start" && chatId != null) {
+        if (inputText.lowercase() == "/start") {
             telegramBot.sendMenu(chatId)
         }
         if (data?.lowercase() == STATISTIC_CLINKED && chatId != null) {
