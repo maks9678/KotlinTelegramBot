@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
         if (inputText.lowercase() == "/start") {
             telegramBot.sendMenu(chatId)
         }
-        if (data?.lowercase() == "statistics_clicked") {
+        if (data?.lowercase() == STATISTIC_CLINKED) {
             val statistics = trainer.getStatistics()
             telegramBot.sendMessage(
                 chatId,
