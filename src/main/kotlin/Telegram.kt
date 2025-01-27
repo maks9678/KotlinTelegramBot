@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
     val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
     val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
     val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
-    val messageChatIdRegex: Regex = "\"chat\":\\{\"id\":(\\d+)".toRegex()
+    val messageChatIdRegex: Regex = "\"chat\":\\{\"id\":(-*\\d+)".toRegex()
 
     val telegramBot = TelegramBotService(args[0])
     var updates: String
@@ -33,7 +33,7 @@ fun main(args: Array<String>) {
     while (true) {
         Thread.sleep(2000)
         updates = telegramBot.getUpdates()
-
+println(updates)
         telegramBot.updateId =
             messageUpdateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()?.plus(1) ?: continue
         println(updates)
