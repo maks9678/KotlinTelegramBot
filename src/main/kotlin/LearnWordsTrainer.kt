@@ -23,17 +23,12 @@ data class Question(
     val variants: List<Word>,
     val correctAnswer: Word,
 )
-fun Question.asConsoleToString(): String {
-    val variants = this.variants
-        .mapIndexed { index, word: Word -> "${index + 1} - ${word.translate}" }
-        .joinToString(separator = "\n")
-    return this.correctAnswer.questionWord + "\n" + variants + "\n 0 - Выйти в меню "
-}
+
 
 class LearnWordsTrainer() {
 
     private val dictionary = loadDictionary()
-    private var question: Question? = null
+    var question: Question? = null
 
 
     fun getStatistics(): Statistics {

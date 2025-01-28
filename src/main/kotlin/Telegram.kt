@@ -117,9 +117,21 @@ fun main(args: Array<String>) {
                 "Выучено: ${statistics.learned} из ${statistics.total} | ${statistics.percent}%"
             )
         }
-        if (data?.lowercase() == LEARN_WORDS_CLICKED && chatId != null) {
+        if (data == LEARN_WORDS_CLICKED && chatId != null) {
+            checkNextQuestionAndSend(json, trainer, telegramBot, chatId)
+        }
 
-
+        if (data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true && chatId != null) {
+            val answerId = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
+            if (trainer.checkAnswer(answerId)) {
+                telegramBot.sendMessage(json, chatId, "Правильно!")
+            } else {
+                telegramBot.sendMessage(
+                    json,
+                    chatId,
+                    "Не правильно: ${trainer.question?.correctAnswer?.questionWord} - ${trainer.question?.correctAnswer?.translate}"
+                )
+            }
             checkNextQuestionAndSend(json, trainer, telegramBot, chatId)
         }
     }
@@ -136,12 +148,11 @@ fun checkNextQuestionAndSend(
     val question: Question? = trainer.getNextQuestion()
     if (question == null) {
         telegramBotService.sendMessage(json, chatId, "Все слова в словаре выучены")
-        return
     } else {
         telegramBotService.sendQuestion(json, chatId, question)
+
     }
 }
-
 
 class TelegramBotService(private val botToken: String) {
     var updateId = 0L
