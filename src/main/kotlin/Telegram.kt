@@ -4,11 +4,9 @@ import kotlinx.serialization.json.Json
 import org.example.LearnWordsTrainer
 import org.example.Question
 import java.net.URI
-import java.net.URLEncoder
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.nio.charset.StandardCharsets
 
 const val URL_BOT = "https://api.telegram.org/bot"
 const val LEARN_WORDS_CLICKED = "learn_words_clicked"
