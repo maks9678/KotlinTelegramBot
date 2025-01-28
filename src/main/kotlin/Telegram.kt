@@ -1,3 +1,6 @@
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.example.LearnWordsTrainer
 import org.example.Question
 import java.net.URI
@@ -12,15 +15,76 @@ const val LEARN_WORDS_CLICKED = "learn_words_clicked"
 const val STATISTIC_CLINKED = "statistics_clicked"
 const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
 
+@Serializable
+data class Update(
+    @SerialName("update_id")
+    val updateId: Long,
+    @SerialName("message")
+    val message: Message? = null,
+    @SerialName("callback_query")
+    val callbackQuery: CallbackQuery? = null,
+)
+
+@Serializable
+data class Response(
+    @SerialName("result")
+    val result: List<Update>
+)
+
+@Serializable
+data class Message(
+    @SerialName("text")
+    val text: String,
+    @SerialName("chat")
+    val chat: Chat,
+)
+
+@Serializable
+data class CallbackQuery(
+    @SerialName("data")
+    val data: String? = null,
+    @SerialName("message")
+    val message: Message? = null,
+)
+
+@Serializable
+data class Chat(
+    @SerialName("id")
+    val id: Long,
+)
+
+@Serializable
+data class SendMessageRequest(
+    @SerialName("chat_id")
+    val chatId: Long,
+    @SerialName("text")
+    val text: String,
+    @SerialName("reply_markup")
+    val replyMarkup: ReplyMarkup? = null,
+)
+
+@Serializable
+data class ReplyMarkup(
+    @SerialName("inline_keyboard")
+    val inlineKeyboard: List<List<InlineKeyboard>>,
+)
+
+@Serializable
+data class InlineKeyboard(
+    @SerialName("text")
+    val text: String,
+    @SerialName("callback_data")
+    val callbackData: String,
+)
+
 
 fun main(args: Array<String>) {
-    val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
-    val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
-    val messageInputTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
-    val messageChatIdRegex: Regex = "\"chat\":\\{\"id\":(-*\\d+)".toRegex()
+
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
 
     val telegramBot = TelegramBotService(args[0])
-    var updates: String
 
     val trainer = try {
         LearnWordsTrainer()
@@ -29,75 +93,60 @@ fun main(args: Array<String>) {
         return
     }
 
-
     while (true) {
         Thread.sleep(2000)
-        updates = telegramBot.getUpdates()
-println(updates)
-        telegramBot.updateId =
-            messageUpdateIdRegex.find(updates)?.groups?.get(1)?.value?.toIntOrNull()?.plus(1) ?: continue
-        println(updates)
+        val responseString = telegramBot.getUpdates()
+        println(responseString)
 
-        val inputText: String = messageInputTextRegex.find(updates)?.groups?.get(1)?.value ?: continue
-        val chatId: Long = messageChatIdRegex.find(updates)?.groups?.get(1)?.value?.toLongOrNull() ?: 0
-        val data: String? = dataRegex.find(updates)?.groups?.get(1)?.value
+        val response = json.decodeFromString<Response>(responseString)
+        val updates = response.result
+        val firstUpdate: Update = updates.firstOrNull() ?: continue
+        val updateId = firstUpdate.updateId
+        telegramBot.updateId = updateId + 1L
 
-        if (inputText.lowercase() == "/start") {
-            telegramBot.sendMenu(chatId)
+        val message: String? = firstUpdate.message?.text
+        val chatId: Long? = firstUpdate.message?.chat?.id ?: firstUpdate.callbackQuery?.message?.chat?.id
+        val data: String? = firstUpdate.callbackQuery?.data
+
+        if (message?.lowercase() == "/start" && chatId != null) {
+            telegramBot.sendMenu(json, chatId)
         }
-        if (data?.lowercase() == STATISTIC_CLINKED) {
+        if (data?.lowercase() == STATISTIC_CLINKED && chatId != null) {
             val statistics = trainer.getStatistics()
             telegramBot.sendMessage(
+                json,
                 chatId,
                 "Выучено: ${statistics.learned} из ${statistics.total} | ${statistics.percent}%"
             )
         }
-        if (data?.lowercase() == LEARN_WORDS_CLICKED) {
+        if (data?.lowercase() == LEARN_WORDS_CLICKED && chatId != null) {
 
 
-            checkNextQuestionAndSend(trainer, telegramBot, chatId)
+            checkNextQuestionAndSend(json, trainer, telegramBot, chatId)
         }
     }
 }
 
 
 fun checkNextQuestionAndSend(
+    json: Json,
     trainer: LearnWordsTrainer,
     telegramBotService: TelegramBotService,
     chatId: Long
 
 ) {
-    val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
-    var data: String?
     val question: Question? = trainer.getNextQuestion()
     if (question == null) {
-        telegramBotService.sendMessage(chatId, "Все слова в словаре выучены")
+        telegramBotService.sendMessage(json, chatId, "Все слова в словаре выучены")
         return
     } else {
-        telegramBotService.sendQuestion(chatId, question)
-        do {
-            Thread.sleep(1000)
-            val updates = telegramBotService.getUpdates()
-            data = dataRegex.find(updates)?.groups?.get(1)?.value
-        } while (data == null)
-
-        if (data.lowercase().startsWith(CALLBACK_DATA_ANSWER_PREFIX)) {
-            val userAnswerIndex = data.removePrefix(CALLBACK_DATA_ANSWER_PREFIX).toInt()
-            if (trainer.checkAnswer(userAnswerIndex-1)) {
-                telegramBotService.sendMessage(chatId, "Правильно!")
-            } else {
-                telegramBotService.sendMessage(
-                    chatId,
-                    "Неправильно ${question.correctAnswer.questionWord} - ${question.correctAnswer.translate}"
-                )
-            }
-        }
+        telegramBotService.sendQuestion(json, chatId, question)
     }
 }
 
 
 class TelegramBotService(private val botToken: String) {
-    var updateId = 0
+    var updateId = 0L
     private val client: HttpClient = HttpClient.newBuilder().build()
 
     fun getUpdates(): String {
@@ -107,67 +156,63 @@ class TelegramBotService(private val botToken: String) {
         return responseUpdates.body()
     }
 
-    fun sendMessage(chatId: Long, text: String): String {
-        val encoded = URLEncoder.encode(
-            text,
-            StandardCharsets.UTF_8
-        )
-        println(encoded)
-        val urlOutput = "$URL_BOT$botToken/sendMessage?chat_id=$chatId&text=$encoded"
-        val requestUpdates = HttpRequest.newBuilder().uri(URI.create(urlOutput)).build()
-        val responseUpdates = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
-        return responseUpdates.body()
-    }
-
-    fun sendMenu(chatId: Long): String {
+    fun sendMessage(json: Json, chatId: Long, text: String): String {
         val urlOutput = "$URL_BOT$botToken/sendMessage"
-        val sendMenuBody = """{
-    "chat_id": $chatId,
-    "text": "Основное меню",
-    "reply_markup": {
-        "inline_keyboard": [
-            [
-                {
-                    "text": "Изучить слова",
-                    "callback_data": "$LEARN_WORDS_CLICKED"
-                },
-                {
-                    "text": "Статистика",
-                    "callback_data": "$STATISTIC_CLINKED"
-                }
-            ]
-        ]
-    }
-}""".trimIndent()
+        val requestBody = SendMessageRequest(
+            chatId = chatId,
+            text = text,
+        )
+        val requestBodyString = json.encodeToString(requestBody)
+
         val request = HttpRequest.newBuilder().uri(URI.create(urlOutput))
             .header("Content-type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(sendMenuBody))
+            .POST(HttpRequest.BodyPublishers.ofString(requestBodyString))
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
     }
 
-    fun sendQuestion(chatId: Long, question: Question): String {
-        val variants = question.variants.mapIndexed { index, variant ->
-            """{
-            "text": "${variant.translate}",
-            "callback_data": "${CALLBACK_DATA_ANSWER_PREFIX}${index + 1}"
-        }"""
-        }.joinToString(separator = ",")
-
+    fun sendMenu(json: Json, chatId: Long): String {
         val urlOutput = "$URL_BOT$botToken/sendMessage"
-        val sendMenuBody = """{
-    "chat_id": $chatId,
-    "text": "How it translates: ${question.correctAnswer.questionWord}",
-    "reply_markup": {
-        "inline_keyboard": [
-            [$variants]
-        ]
-    }
-}""".trimIndent()
+        val requestBody = SendMessageRequest(
+            chatId = chatId,
+            text = "Основное меню",
+            replyMarkup = (ReplyMarkup(
+                listOf(
+                    listOf(
+                        InlineKeyboard("Изучить слова", LEARN_WORDS_CLICKED),
+                        InlineKeyboard("Статистика", STATISTIC_CLINKED),
+                    )
+                )
+            )
+                    )
+        )
+        val requestBodyString = json.encodeToString(requestBody)
+
         val request = HttpRequest.newBuilder().uri(URI.create(urlOutput))
             .header("Content-type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(sendMenuBody))
+            .POST(HttpRequest.BodyPublishers.ofString(requestBodyString))
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.body()
+    }
+
+    fun sendQuestion(json: Json, chatId: Long, question: Question): String {
+
+        val urlOutput = "$URL_BOT$botToken/sendMessage"
+
+        val requestBody = SendMessageRequest(
+            chatId = chatId,
+            text = "How it translates: ${question.correctAnswer.questionWord}",
+            replyMarkup = ReplyMarkup(listOf(question.variants.mapIndexed { index, word ->
+                InlineKeyboard(word.translate, "${CALLBACK_DATA_ANSWER_PREFIX}${index + 1}")
+            }))
+
+        )
+        val requestBodyString = json.encodeToString(requestBody)
+        val request = HttpRequest.newBuilder().uri(URI.create(urlOutput))
+            .header("Content-type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(requestBodyString))
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
