@@ -53,9 +53,10 @@ fun main(args: Array<String>) {
             )
         }
         if (data?.lowercase() == LEARN_WORDS_CLICKED) {
-
-
-            checkNextQuestionAndSend(trainer, telegramBot, chatId)
+            while (true) {
+                Thread.sleep(1000)
+                checkNextQuestionAndSend(trainer, telegramBot, chatId)
+            }
         }
     }
 }
@@ -68,31 +69,40 @@ fun checkNextQuestionAndSend(
 
 ) {
     val dataRegex: Regex = "\"data\":\"(.+?)\"".toRegex()
+    val messageUpdateIdRegex: Regex = "\"update_id\":(\\d+)".toRegex()
     var data: String?
     val question: Question? = trainer.getNextQuestion()
+    var lastUpdates: Int
+
     if (question == null) {
         telegramBotService.sendMessage(chatId, "Все слова в словаре выучены")
         return
     } else {
         telegramBotService.sendQuestion(chatId, question)
+        lastUpdates = telegramBotService.updateId
+
         do {
             Thread.sleep(1000)
             val updates = telegramBotService.getUpdates()
+            lastUpdates = messageUpdateIdRegex.find(updates)?.groups?.get(1)?.value?.toInt() ?: lastUpdates
             data = dataRegex.find(updates)?.groups?.get(1)?.value
-        } while (data == null)
+        } while (data == null && lastUpdates == telegramBotService.updateId)
 
-        if (data.lowercase().startsWith(CALLBACK_DATA_ANSWER_PREFIX)) {
-            val userAnswerIndex = data.removePrefix(CALLBACK_DATA_ANSWER_PREFIX).toInt()
-            if (trainer.checkAnswer(userAnswerIndex-1)) {
-                telegramBotService.sendMessage(chatId, "Правильно!")
-            } else {
-                telegramBotService.sendMessage(
-                    chatId,
-                    "Неправильно ${question.correctAnswer.questionWord} - ${question.correctAnswer.translate}"
-                )
+        if (data != null) {
+            if (data.lowercase().startsWith(CALLBACK_DATA_ANSWER_PREFIX)) {
+                val userAnswerIndex = data.removePrefix(CALLBACK_DATA_ANSWER_PREFIX).toInt()
+                if (trainer.checkAnswer(userAnswerIndex - 1)) {
+                    telegramBotService.sendMessage(chatId, "Правильно!")
+                } else {
+                    telegramBotService.sendMessage(
+                        chatId,
+                        "Неправильно ${question.correctAnswer.questionWord} - ${question.correctAnswer.translate}"
+                    )
+                }
             }
         }
     }
+    telegramBotService.updateId = lastUpdates.plus(1)
 }
 
 
