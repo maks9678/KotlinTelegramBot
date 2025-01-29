@@ -117,6 +117,7 @@ fun main(args: Array<String>) {
                 "Выучено: ${statistics.learned} из ${statistics.total} | ${statistics.percent}%"
             )
         }
+
         if (data == LEARN_WORDS_CLICKED && chatId != null) {
             checkNextQuestionAndSend(json, trainer, telegramBot, chatId)
         }
@@ -146,12 +147,14 @@ fun checkNextQuestionAndSend(
 
 ) {
     val question: Question? = trainer.getNextQuestion()
+    var lastUpdates: Int
+
     if (question == null) {
         telegramBotService.sendMessage(json, chatId, "Все слова в словаре выучены")
     } else {
         telegramBotService.sendQuestion(json, chatId, question)
-
     }
+    telegramBotService.updateId = lastUpdates.plus(1)
 }
 
 class TelegramBotService(private val botToken: String) {

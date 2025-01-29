@@ -24,7 +24,6 @@ data class Question(
     val correctAnswer: Word,
 )
 
-
 class LearnWordsTrainer() {
 
     private val dictionary = loadDictionary()
