@@ -122,7 +122,7 @@ fun main(args: Array<String>) {
         }
 
         if (data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true && chatId != null) {
-            val answerId = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()
+            val answerId = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt()-1
             if (trainer.checkAnswer(answerId)) {
                 telegramBot.sendMessage(json, chatId, "Правильно!")
             } else {
