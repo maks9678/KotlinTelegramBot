@@ -78,16 +78,9 @@ data class InlineKeyboard(
 
 
 fun main(args: Array<String>) {
-
     val json = Json { ignoreUnknownKeys = true }
     val telegramBot = TelegramBotService(args[0], json)
     val trainers = HashMap<Long, LearnWordsTrainer>()
-    val trainer = try {
-        LearnWordsTrainer()
-    } catch (e: Exception) {
-        println("Невозможно загрузить словарь.")
-        return
-    }
 
     while (true) {
         Thread.sleep(2000)
@@ -155,7 +148,6 @@ fun checkNextQuestionAndSend(
     if (question == null) {
         telegramBotService.sendMessage(chatId, "Все слова в словаре выучены")
     } else {
-
         telegramBotService.sendQuestion(chatId, question)
     }
 }
