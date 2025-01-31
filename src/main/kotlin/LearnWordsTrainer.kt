@@ -25,7 +25,7 @@ data class Question(
 )
 
 class LearnWordsTrainer(
-    private val fileName = "words.txt",
+    private val fileName: String = "words.txt",
 ) {
 
     private val dictionary = loadDictionary()
