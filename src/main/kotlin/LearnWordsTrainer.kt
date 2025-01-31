@@ -88,14 +88,14 @@ class LearnWordsTrainer(
     }
 
     private fun saveDictionary() {
-        val dictionaryFile = File("word.txt")
+        val dictionaryFile = File(fileName)
         val content = dictionary.joinToString(separator = "\n") {
             "${it.questionWord}|${it.translate}|${it.correctAnswerCount}"
         }
         dictionaryFile.writeText(content)
     }
 
-    private fun resetProgress() {
+    fun resetProgress() {
         dictionary.forEach{ it.correctAnswerCount = 0 }
         saveDictionary()
     }

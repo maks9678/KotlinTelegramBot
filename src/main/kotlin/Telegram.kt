@@ -81,7 +81,7 @@ fun main(args: Array<String>) {
 
     val json = Json { ignoreUnknownKeys = true }
     val telegramBot = TelegramBotService(args[0], json)
-    val trainers: HashMap<Long, LearnWordsTrainer> = HashMap<Long, LearnWordsTrainer>()
+    val trainers = HashMap<Long, LearnWordsTrainer>()
     val trainer = try {
         LearnWordsTrainer()
     } catch (e: Exception) {
