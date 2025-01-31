@@ -1,10 +1,12 @@
 package org.example
 
+import kotlinx.serialization.Serializable
 import java.io.File
 
 const val NUMBER_UNLEARNED_WORDS = 4
 const val MIN_CORRECT_ANSWERS = 3
 
+@Serializable
 data class Word(
     val questionWord: String,
     val translate: String,
@@ -25,7 +27,7 @@ data class Question(
 class LearnWordsTrainer() {
 
     private val dictionary = loadDictionary()
-    private var question: Question? = null
+    var question: Question? = null
 
 
     fun getStatistics(): Statistics {
