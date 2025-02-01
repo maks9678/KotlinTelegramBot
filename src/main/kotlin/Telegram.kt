@@ -127,9 +127,10 @@ fun handleUpdate(update: Update, telegramBot: TelegramBotService, trainers: Hash
         if (trainer.checkAnswer(answerId)) {
             telegramBot.sendMessage(chatId, "Правильно!")
         } else {
+            val correctAnswer = trainer.question?.correctAnswer
             telegramBot.sendMessage(
                 chatId,
-                "Не правильно: ${trainer.question?.correctAnswer?.questionWord} - ${trainer.question?.correctAnswer?.translate}"
+                "Не правильно: ${correctAnswer?.questionWord} - ${correctAnswer?.translate}"
             )
         }
         checkNextQuestionAndSend(trainer, telegramBot, chatId)

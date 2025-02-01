@@ -31,7 +31,6 @@ class LearnWordsTrainer(
     private val dictionary = loadDictionary()
     var question: Question? = null
 
-
     fun getStatistics(): Statistics {
         val learned = dictionary.filter { it.correctAnswerCount >= MIN_CORRECT_ANSWERS }.size
         val total = dictionary.size
