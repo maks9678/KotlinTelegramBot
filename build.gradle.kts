@@ -1,8 +1,12 @@
 plugins {
     kotlin("jvm") version "2.1.10"
     kotlin("plugin.serialization") version "2.1.10"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    application
 }
-
+application {
+    mainClass.set("TelegramKt")
+}
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
@@ -13,6 +17,8 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+    implementation ("androidx.appcompat:appcompat:1.3.0") // или другая версия
+    implementation ("com.google.android.material:material:1.4.0")
 }
 
 tasks.test {

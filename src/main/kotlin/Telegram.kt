@@ -1,3 +1,5 @@
+
+import jdk.jpackage.internal.Log
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -81,18 +83,26 @@ fun main(args: Array<String>) {
     val json = Json { ignoreUnknownKeys = true }
     val telegramBot = TelegramBotService(args[0], json)
     val trainers = HashMap<Long, LearnWordsTrainer>()
-    
+
     while (true) {
-        Thread.sleep(2000)
-        val responseString = telegramBot.getUpdates()
-        println(responseString)
+        val result = runCatching {
+            Thread.sleep(2000)
+            val responseString = telegramBot.getUpdates()
+            println(responseString)
 
-        val response = json.decodeFromString<Response>(responseString)
-        if (response.result.isEmpty()) continue
-        val sortedUpdates = response.result.sortedBy { it.updateId }
-        sortedUpdates.forEach { handleUpdate(it, telegramBot, trainers) }
-        telegramBot.updateId = sortedUpdates.last().updateId + 1
+            val response = json.decodeFromString<Response>(responseString)
+            if (response.result.isNotEmpty()) {
+                val sortedUpdates = response.result.sortedBy { it.updateId }
+                sortedUpdates.forEach { handleUpdate(it, telegramBot, trainers) }
+                telegramBot.updateId = sortedUpdates.last().updateId + 1
+            }
+        }
 
+        result.onSuccess { updates ->
+            Log.d("TelegramBotService", "Updates received: $updates")
+        }.onFailure { exception ->
+            Log.e("TelegramBotService", "Error retrieving updates: ${exception.message}", exception)
+        }
     }
 }
 
