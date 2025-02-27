@@ -17,8 +17,6 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
-    implementation ("androidx.appcompat:appcompat:1.3.0") // или другая версия
-    implementation ("com.google.android.material:material:1.4.0")
 }
 
 tasks.test {

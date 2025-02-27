@@ -17,8 +17,9 @@ English Learning Bot
 Публикация и запуск
 
 1. Соберем shadowJar командой ./gradlew shadowJar 
-2. Копируем jar на наш VPS переименуя его одновременно в bot.jar: scp build/libs/KotlinTelegramBot-1.0-SNAPSHOT-all.jar root@45.132.18.3:/root/bot.jar 
-3. Копируем words.txt на VPS: scp word.txt root@45.132.18.3:/root/word.txt 
+2. Копируем jar на наш VPS переименуя его одновременно в bot.jar: 
+scp build/libs/KotlinTelegramBot-1.0-SNAPSHOT-all.jar root@45.132.18.3:/root/bot.jar 
+3. Копируем words.txt на VPS: scp words.txt root@45.132.18.3:/root/words.txt 
 4. Подключиться к серверу по SSH используя команду ssh root@45.132.18.3 и введя пароль 
 5. Запустить бота в фоне командой nohup java -jar bot.jar 7520156009:AAGuGUZQNnJGNXxgHZgRKu5epgodiqHE9fI & 
 6. Проверить работу бота scp build/libs/WordsTelegramBot-1.0-SNAPSHOT-all.jar root@45.132.18.3:/root/bot.jar
@@ -28,3 +29,13 @@ English Learning Bot
  cat /root/nohup.out
 2. Это покажет вам процессы Java, которые запущены на сервере.
    ps aux | grep java
+3. обновить файл scp build/libs/KotlinTelegramBot-1.0-SNAPSHOT-all.jar root@45.132.18.3:/root
+4. перезапустк nohup java -jar bot.jar 7520156009:AAGuGUZQNnJGNXxgHZgRKu5epgodiqHE9fI &
+5. удаление файла rm /root/bot.jar
+6. Используйте команду ls для отображения файлов и каталогов: ls -l
+⦁ -l используется для отображения подробной информации о файлах.
+⦁ Чтобы посмотреть все файлы, включая скрытые, используйте ls -la.
+7. Для удаления всех файлов в текущей директории используйте следующую команду: rm *
+Этот вариант удалит все файлы, но не директории. Если вы также хотите удалить подкаталоги, 
+вам нужно будет использовать параметр -r (рекурсивно): rm -r *
+8. Введите команду kill, за которой следует PID процесса, который вы хотите остановить. Пример для первого процесса: kill 162591
