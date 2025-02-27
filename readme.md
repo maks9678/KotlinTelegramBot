@@ -29,7 +29,7 @@ scp build/libs/KotlinTelegramBot-1.0-SNAPSHOT-all.jar root@45.132.18.3:/root/bot
  cat /root/nohup.out
 2. Это покажет вам процессы Java, которые запущены на сервере.
    ps aux | grep java
-3. обновить файл scp build/libs/KotlinTelegramBot-1.0-SNAPSHOT-all.jar root@45.132.18.3:/root
+3. обновить файл scp build/libs/KotlinTelegramBot-1.0-SNAPSHOT-all.jar root@45.132.18.3:/root/bot.jar
 4. перезапустк nohup java -jar bot.jar 7520156009:AAGuGUZQNnJGNXxgHZgRKu5epgodiqHE9fI &
 5. удаление файла rm /root/bot.jar
 6. Используйте команду ls для отображения файлов и каталогов: ls -l

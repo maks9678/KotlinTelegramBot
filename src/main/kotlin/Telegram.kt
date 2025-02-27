@@ -1,5 +1,4 @@
 
-import jdk.jpackage.internal.Log
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -99,9 +98,9 @@ fun main(args: Array<String>) {
         }
 
         result.onSuccess { updates ->
-            Log.d("TelegramBotService", "Updates received: $updates")
+            println("Updates received: $updates")
         }.onFailure { exception ->
-            Log.e("TelegramBotService", "Error retrieving updates: ${exception.message}", exception)
+            println("Error retrieving updates: ${exception.message}")
         }
     }
 }
@@ -220,15 +219,17 @@ class TelegramBotService(private val botToken: String, private val json: Json) {
     fun sendQuestion(chatId: Long, question: Question): String {
 
         val urlOutput = "$URL_BOT$botToken/sendMessage"
-
+        val wordPairs = question.variants.chunked(2)
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = "How it translates: ${question.correctAnswer.questionWord}",
-            replyMarkup = ReplyMarkup(listOf(question.variants.mapIndexed { index, word ->
-                InlineKeyboard(word.translate, "${CALLBACK_DATA_ANSWER_PREFIX}${index + 1}")
-            }))
+            replyMarkup = ReplyMarkup(wordPairs.mapIndexed { pairIndex, pair ->
+                pair.mapIndexed { wordIndex, word ->
+                    InlineKeyboard(word.translate, "${CALLBACK_DATA_ANSWER_PREFIX}${pairIndex * 2 + wordIndex + 1}") // +1 чтобы начинать с 1
+                }
+            }
 
-        )
+        ))
         val requestBodyString = json.encodeToString(requestBody)
         val request = HttpRequest.newBuilder().uri(URI.create(urlOutput))
             .header("Content-type", "application/json")
