@@ -168,8 +168,8 @@ class TelegramBotService(private val botToken: String, private val json: Json) {
 
     fun getUpdates(): String {
         val urlGetUpdates = "$URL_BOT$botToken/getUpdates?offset=$updateId"
-        val requestUpdates = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
-        val responseUpdates = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
+        val requestUpdates: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
+        val responseUpdates: HttpResponse<String> = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
         return responseUpdates.body()
     }
 
@@ -179,7 +179,7 @@ class TelegramBotService(private val botToken: String, private val json: Json) {
             chatId = chatId,
             text = text,
         )
-        val requestBodyString = json.encodeToString(requestBody)
+        val requestBodyString: String = json.encodeToString(requestBody)
 
         val request = HttpRequest.newBuilder().uri(URI.create(urlOutput))
             .header("Content-type", "application/json")
