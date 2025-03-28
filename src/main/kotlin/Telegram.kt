@@ -133,7 +133,7 @@ fun handleUpdate(update: Update, telegramBot: TelegramBotService, trainers: Hash
 
     if (data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
         val answerId = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt() - 1
-        if (trainer.checkAnswer(answerId)) {
+        if (trainer.checkAnswer(answerId) ) {
             telegramBot.sendMessage(chatId, "Правильно!")
         } else {
             val correctAnswer = trainer.question?.correctAnswer
