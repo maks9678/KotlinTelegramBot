@@ -1,3 +1,4 @@
+
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -81,18 +82,26 @@ fun main(args: Array<String>) {
     val json = Json { ignoreUnknownKeys = true }
     val telegramBot = TelegramBotService(args[0], json)
     val trainers = HashMap<Long, LearnWordsTrainer>()
-    
+
     while (true) {
-        Thread.sleep(2000)
-        val responseString = telegramBot.getUpdates()
-        println(responseString)
+        val result = runCatching {
+            Thread.sleep(2000)
+            val responseString = telegramBot.getUpdates()
+            println(responseString)
 
-        val response = json.decodeFromString<Response>(responseString)
-        if (response.result.isEmpty()) continue
-        val sortedUpdates = response.result.sortedBy { it.updateId }
-        sortedUpdates.forEach { handleUpdate(it, telegramBot, trainers) }
-        telegramBot.updateId = sortedUpdates.last().updateId + 1
+            val response = json.decodeFromString<Response>(responseString)
+            if (response.result.isNotEmpty()) {
+                val sortedUpdates = response.result.sortedBy { it.updateId }
+                sortedUpdates.forEach { handleUpdate(it, telegramBot, trainers) }
+                telegramBot.updateId = sortedUpdates.last().updateId + 1
+            }
+        }
 
+        result.onSuccess { updates ->
+            println("Updates received: $updates")
+        }.onFailure { exception ->
+            println("Error retrieving updates: ${exception.message}")
+        }
     }
 }
 
@@ -124,7 +133,7 @@ fun handleUpdate(update: Update, telegramBot: TelegramBotService, trainers: Hash
 
     if (data?.startsWith(CALLBACK_DATA_ANSWER_PREFIX) == true) {
         val answerId = data.substringAfter(CALLBACK_DATA_ANSWER_PREFIX).toInt() - 1
-        if (trainer.checkAnswer(answerId)) {
+        if (trainer.checkAnswer(answerId) ) {
             telegramBot.sendMessage(chatId, "Правильно!")
         } else {
             val correctAnswer = trainer.question?.correctAnswer
@@ -159,8 +168,8 @@ class TelegramBotService(private val botToken: String, private val json: Json) {
 
     fun getUpdates(): String {
         val urlGetUpdates = "$URL_BOT$botToken/getUpdates?offset=$updateId"
-        val requestUpdates = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
-        val responseUpdates = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
+        val requestUpdates: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
+        val responseUpdates: HttpResponse<String> = client.send(requestUpdates, HttpResponse.BodyHandlers.ofString())
         return responseUpdates.body()
     }
 
@@ -170,7 +179,7 @@ class TelegramBotService(private val botToken: String, private val json: Json) {
             chatId = chatId,
             text = text,
         )
-        val requestBodyString = json.encodeToString(requestBody)
+        val requestBodyString: String = json.encodeToString(requestBody)
 
         val request = HttpRequest.newBuilder().uri(URI.create(urlOutput))
             .header("Content-type", "application/json")
@@ -210,15 +219,17 @@ class TelegramBotService(private val botToken: String, private val json: Json) {
     fun sendQuestion(chatId: Long, question: Question): String {
 
         val urlOutput = "$URL_BOT$botToken/sendMessage"
-
+        val wordPairs = question.variants.chunked(2)
         val requestBody = SendMessageRequest(
             chatId = chatId,
             text = "How it translates: ${question.correctAnswer.questionWord}",
-            replyMarkup = ReplyMarkup(listOf(question.variants.mapIndexed { index, word ->
-                InlineKeyboard(word.translate, "${CALLBACK_DATA_ANSWER_PREFIX}${index + 1}")
-            }))
+            replyMarkup = ReplyMarkup(wordPairs.mapIndexed { pairIndex, pair ->
+                pair.mapIndexed { wordIndex, word ->
+                    InlineKeyboard(word.translate, "${CALLBACK_DATA_ANSWER_PREFIX}${pairIndex * 2 + wordIndex + 1}") // +1 чтобы начинать с 1
+                }
+            }
 
-        )
+        ))
         val requestBodyString = json.encodeToString(requestBody)
         val request = HttpRequest.newBuilder().uri(URI.create(urlOutput))
             .header("Content-type", "application/json")

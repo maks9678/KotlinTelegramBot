@@ -60,7 +60,9 @@ class LearnWordsTrainer(
     fun checkAnswer(userAnswerIndex: Int): Boolean {
         return question?.let {
             val correctAnswerId = it.variants.indexOf(it.correctAnswer)
-            if (correctAnswerId == userAnswerIndex) {
+            val correctAnswerText = it.correctAnswer
+            val userAnswerText = it.variants[userAnswerIndex]
+            if (correctAnswerId == userAnswerIndex && userAnswerText == correctAnswerText) {
                 it.correctAnswer.correctAnswerCount++
                 saveDictionary()
                 true
@@ -95,7 +97,7 @@ class LearnWordsTrainer(
     }
 
     fun resetProgress() {
-        dictionary.forEach{ it.correctAnswerCount = 0 }
+        dictionary.forEach { it.correctAnswerCount = 0 }
         saveDictionary()
     }
 }

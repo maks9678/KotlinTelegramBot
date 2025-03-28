@@ -1,0 +1,83 @@
+
+study|изучать|0
+answer|ответ|0
+variable|переменная|0
+screen|экран|0
+number|число|0
+string|строка|0
+value|значение|0
+display|отображение|0
+numerical|числовой|0
+cell|ячейка|0
+quantity|количество|0
+console|консоль|0
+accessibility|доступность|0
+user|пользователь|0
+notification|уведомление|0
+initialize|инициализировать|0
+declare|задекларировать|0
+simple|простой|0
+create|создать|0
+store|хранить|0
+assign|присвоить|0
+program|программа|0
+classic operations|классические операции|0
+addition|сложение|0
+subtraction|вычитание|0
+multiplication|умножение|0
+division|деление|0
+refactoring|Рефакторинг|0
+renaming|переименование|0
+folder|папка|0
+The entry point|точка входа|0
+application|приложение|0
+standard function|стандартная функция|0
+curly brace|фигурная скобка|0
+executable|исполняемый|0
+basic operations|основные операции|0
+expression|выражение|0
+sum|сумма|0
+print|печатать|0
+console|консоль|0
+complex expressions|сложные выражения|0
+additional brackets|дополнительные скобки|0
+initialize|проинициализировать|0
+Development environment|cреда разработки|0
+compilation stage|этап компиляции|0
+the compiler|компилятор|0
+source string|исходная строка|0
+concatenation|конкатенация|0
+short string|короткая строка|0
+whitespace|пробел|0
+symbol|символ|0
+single quotes|одинарные кавычки|0
+string literals|строковые литералы|0
+functionality|функциональность|0
+user|пользователь|0
+implement|внедрить|0
+way|способ|0
+embed|встраивать|0
+expand|расширить|0
+appeal|обращение|0
+char|символ|0
+println|функция вывода на экран|0
+stack together|складывать вместе|0
+Assignment operator|Оператор присваивания|0
+Comparison operator|Оператор сравнения|0
+Equal sign|Знак равенства|0
+Boolean|Логический тип|0
+Greater than|Больше чем|0
+Less than|Меньше чем|0
+Logical operator|Логический оператор|0
+True|Истина|0
+False|Ложь|0
+Threshold|Порог|0
+Condition|Условие|0
+Range|Диапазон|0
+Negation|Отрицание|0
+Expression|Выражение|0
+Memory|Память|0
+Composite conditions|Составные условия|0
+Inequality|Неравенство|0
+Greater or equal|Больше или равно|0
+Logical negation|Логическое отрицание|0

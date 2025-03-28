@@ -1,0 +1,53 @@
+name: Build and Publish
+
+on:
+  push:
+    branches:
+      - master  # имя основной ветки
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build with Gradle
+        run: ./gradlew shadowJar
+
+      - name: Rename file
+        run: mv build/libs/EnglishWordsBot-1.0-SNAPSHOT-all.jar bot.jar
+
+      - name: Deploy jar to VPS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: bot.jar
+          target: /root
+
+      - name: Deploy words.txt to VPS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: words.txt
+          target: /root
+
+      - name: Restart Remote Service
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username:  ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            systemctl restart english-learning-bot
